@@ -469,7 +469,7 @@ def train(resume_from = None):
                 
                 # Step optimizer every GRAD_ACCUMULATION_STEPS batches
                 if (batch_idx + 1) % GRAD_ACCUMULATION_STEPS == 0 or batch_idx == len(dataloader) - 1:
-                    print(global_step)
+                    # print(global_step)
                     # Gradient clipping
                     if config['optimizer']['clip_grad'] > 0:
                         scaler.unscale_(optimizer)
