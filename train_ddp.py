@@ -68,7 +68,7 @@ GRAD_ACCUMULATION_STEPS = 8  # Adjusted back to original
 LEARNING_RATE = config['optimizer']['learning_rate_scheduler']['learning_rate']
 WEIGHT_DECAY = config['optimizer']['weight_decay']
 WARMUP_STEPS = 1000  # Shorter warmup for quicker training
-TOTAL_STEPS = 5000  # As requested
+TOTAL_STEPS = 3000  # As requested (Total steps with gradient accumulation - 24000 total steps)
 
 deepseek_config = {
     "compression_ratio": 4,
@@ -557,8 +557,8 @@ def train(rank, world_size, resume_from=None):
                     test_prompt = "Before we proceed any further, "
                     generated_text = generate_text(model.module, tokenizer, test_prompt, device=device)
 
-                    print("\n" + "="*50)
                     if rank == 0:
+                        print("\n" + "="*50)
                         print(f"Rank 0: Sample generation at step {global_step}:")
                         print(f"Prompt: {test_prompt}")
                         print(f"Generated: {generated_text}")
