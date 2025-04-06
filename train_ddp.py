@@ -438,8 +438,8 @@ def train(rank, world_size, resume_from=None):
         scaler.load_state_dict(checkpoint['scaler'])
         
         global_step = checkpoint['global_step']
-        if 'epoch' in checkpoint:
-            epoch = checkpoint['epoch']
+        # if 'epoch' in checkpoint:
+        #     epoch = checkpoint['epoch']
         
         if rank == 0:
             print(f"Loaded checkpoint from {resume_from}")
