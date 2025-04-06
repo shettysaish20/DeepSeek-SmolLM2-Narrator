@@ -7,7 +7,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.distributed as dist
 from torch.nn import SiLU
+import math
 import yaml
 
 def _init_weights(module, std=0.041666666666666664):
@@ -169,9 +171,29 @@ class DeepSeekExpertLayer(nn.Module):
         self.up_proj = nn.Linear(hidden_size, intermediate_size, bias=False)
         self.down_proj = nn.Linear(intermediate_size, hidden_size, bias=False)
         self.act_fn = nn.SiLU()
+        self.intermediate_size = intermediate_size # Store for scaling
+        self.scaling_factor = 8.0
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        nn.init.kaiming_uniform_(self.gate_proj.weight, a=math.sqrt(5))
+        nn.init.kaiming_uniform_(self.up_proj.weight, a=math.sqrt(5))
+        nn.init.xavier_uniform_(self.down_proj.weight)
 
     def forward(self, x):
-        return self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+        gate_proj_out = self.gate_proj(x)
+        # print(f"Rank {dist.get_rank()}: Gate Proj Output - NaN: {torch.isnan(gate_proj_out).any()}, Max: {gate_proj_out.max().item():.4f}, Min: {gate_proj_out.min().item():.4f}")
+        act_fn_out = self.act_fn(gate_proj_out)
+        # print(f"Rank {dist.get_rank()}: Act Fn Output - NaN: {torch.isnan(act_fn_out).any()}, Max: {act_fn_out.max().item():.4f}, Min: {act_fn_out.min().item():.4f}")
+        up_proj_out = self.up_proj(x)
+        # print(f"Rank {dist.get_rank()}: Up Proj Output - NaN: {torch.isnan(up_proj_out).any()}, Max: {up_proj_out.max().item():.4f}, Min: {up_proj_out.min().item():.4f}")
+        intermediate = act_fn_out * up_proj_out
+        # Scale down the intermediate product (IMP: Cause for NaN issue)
+        intermediate = intermediate / self.scaling_factor
+        # print(f"Rank {dist.get_rank()}: Intermediate Product - NaN: {torch.isnan(intermediate).any()}, Max: {intermediate.max().item():.4f}, Min: {intermediate.min().item():.4f}")
+        down_proj_out = self.down_proj(intermediate)
+        # print(f"Rank {dist.get_rank()}: Down Proj Output - NaN: {torch.isnan(down_proj_out).any()}, Max: {down_proj_out.max().item():.4f}, Min: {down_proj_out.min().item():.4f}")
+        return down_proj_out
 
 
 class DeepSeekMoE (nn.Module):
@@ -200,8 +222,15 @@ class DeepSeekMoE (nn.Module):
         self.routing_bias= nn.Parameter(torch.zeros(self.num_routed_experts))
     
     def forward(self, x):
+        # --- Debugging Print for Input to MoE ---
+        # if dist.is_initialized():
+        #     rank = dist.get_rank()
+        #     print(f"Rank {rank}: MoE Input - NaN: {torch.isnan(x).any()}, Max: {x.max().item():.4f}, Min: {x.min().item():.4f}")
+        # else:
+        #     print(f"MoE Input - NaN: {torch.isnan(x).any()}, Max: {x.max().item():.4f}, Min: {x.min().item():.4f}")
+        # # --- End Debugging Print for Input to MoE ---
         batch_size , seq_len , hidden_size = x.shape
-        
+
         # Process through shared experts
         shared_output = sum ( expert ( x ) for expert in self.shared_experts )
 
@@ -212,8 +241,24 @@ class DeepSeekMoE (nn.Module):
         routing_logits = self.router(x) + self.routing_bias
 
         #Get top-k experts per token
-        routing_probs = torch.sigmoid(routing_logits)
+        routing_probs = torch.sigmoid(routing_logits) # Or F.softmax if you are testing that
         scores, indices = torch.topk(routing_probs, self.top_k, dim=-1)
+
+        # --- Debugging Prints (Existing) ---
+        # if dist.is_initialized():
+        #     rank = dist.get_rank()
+        #     print(f"Rank {rank}: MoE Routing Logits - NaN: {torch.isnan(routing_logits).any()}, Max: {routing_logits.max().item():.4f}, Min: {routing_logits.min().item():.4f}")
+        #     print(f"Rank {rank}: MoE Routing Probs (Sigmoid) - NaN: {torch.isnan(routing_probs).any()}, Max: {routing_probs.max().item():.4f}, Min: {routing_probs.min().item():.4f}")
+        #     print(f"Rank {rank}: MoE Top-K Scores - NaN: {torch.isnan(scores).any()}, Max: {scores.max().item():.4f}, Min: {scores.min().item():.4f}")
+        #     # expert_usage = torch.bincount(indices.flatten(), minlength=self.num_routed_experts)
+        #     # print(f"Rank {rank}: Expert Usage: {expert_usage}")
+        # else:
+        #     print(f"MoE Routing Logits - NaN: {torch.isnan(routing_logits).any()}, Max: {routing_logits.max().item():.4f}, Min: {routing_logits.min().item():.4f}")
+        #     print(f"MoE Routing Probs (Sigmoid) - NaN: {torch.isnan(routing_probs).any()}, Max: {routing_probs.max().item():.4f}, Min: {routing_probs.min().item():.4f}")
+        #     print(f"MoE Top-K Scores - NaN: {torch.isnan(scores).any()}, Max: {scores.max().item():.4f}, Min: {scores.min().item():.4f}")
+        #     # expert_usage = torch.bincount(indices.flatten(), minlength=self.num_routed_experts)
+            # print(f"Expert Usage: {expert_usage}")
+        # --- End Debugging Prints (Existing) ---
 
         #Normalize the top-k scores
         scores = scores / scores.sum(dim=-1, keepdim=True)
@@ -231,10 +276,28 @@ class DeepSeekMoE (nn.Module):
                 if mask.any():
                     expert_input = x[mask]
                     expert_output = self.routed_experts[i](expert_input)
+
+                    # --- Debugging Print for Expert Output ---
+                    # if dist.is_initialized():
+                    #     rank = dist.get_rank()
+                    #     print(f"Rank {rank}: Expert {i} Output - NaN: {torch.isnan(expert_output).any()}, Max: {expert_output.max().item():.4f}, Min: {expert_output.min().item():.4f}")
+                    # else:
+                    #     print(f"Expert {i} Output - NaN: {torch.isnan(expert_output).any()}, Max: {expert_output.max().item():.4f}, Min: {expert_output.min().item():.4f}")
+                    # # --- End Debugging Print for Expert Output ---
+
                     combined_output[mask] += expert_output * expert_scores[mask]
 
         # Combine shared and routed outputs
         final_output = shared_output + combined_output
+
+        # --- Debugging Print for Final MoE Output ---
+        # if dist.is_initialized():
+        #     rank = dist.get_rank()
+        #     print(f"Rank {rank}: Final MoE Output - NaN: {torch.isnan(final_output).any()}, Max: {final_output.max().item():.4f}, Min: {final_output.min().item():.4f}")
+        # else:
+        #     print(f"Final MoE Output - NaN: {torch.isnan(final_output).any()}, Max: {final_output.max().item():.4f}, Min: {final_output.min().item():.4f}")
+        # --- End Debugging Print for Final MoE Output ---
+
         return final_output
 
         #Adjust bias terms based on expert Load

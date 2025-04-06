@@ -625,7 +625,7 @@ def train(rank, world_size, resume_from=None):
 def main(resume_from=None):
     world_size = torch.cuda.device_count()
     if resume_from is not None:
-        config['optimizer']['learning_rate_scheduler']['learning_rate']*= 0.5  # Reduce by half
+        config['optimizer']['learning_rate_scheduler']['learning_rate']*= 0.0001  # Reduce by half
         print(f"Resuming training: Setting learning rate to {config['optimizer']['learning_rate_scheduler']['learning_rate']}")
     mp.spawn(train,
              args=(world_size, resume_from),  # Pass world_size as a tuple

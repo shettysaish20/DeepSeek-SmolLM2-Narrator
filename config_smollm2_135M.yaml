@@ -61,9 +61,9 @@ model:
     s3_log_file_name: training.log
 optimizer:
   accumulate_grad_in_fp32: true
-  clip_grad: 1.0
+  clip_grad: 0.5
   learning_rate_scheduler:
-    learning_rate: 0.0003
+    learning_rate: 0.0001
     lr_decay_starting_step: 1600000
     lr_decay_steps: 400000
     lr_decay_style: linear
