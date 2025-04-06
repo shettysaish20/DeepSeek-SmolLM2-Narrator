@@ -1,0 +1,440 @@
+(eraenv) PS C:\Projects\ERA_V3\Session15_Assignment\git_tracking> python train.py
+Using device: cuda
+Starting GPU memory: 0.00 MB
+
+==================================================
+Model Parameter Breakdown:
+==================================================
+Total Parameters: 373.03M
+  - Attention Params: 26.13M (7.0%)
+  - MLP Params: 0.00M (0.0%)
+  - MoE Params: 318.56M (85.4%)
+  - Embedding Params: 28.31M (7.6%)
+  - Normalization Params: 0.04M (0.0%)
+  - Other Params: 0.00M (0.0%)
+==================================================
+
+Memory optimizations applied: Batch size = 2, Grad accumulation = 8
+Model parameters: 373.03M
+Starting training...
+Starting epoch 1
+C:\Users\Saish Shetty\.conda\envs\eraenv\lib\site-packages\torch\_dynamo\eval_frame.py:632: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In version 2.5 we will raise an exception if use_reentrant is not passed. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+Step 10/5000 | Update time: 0:04:34 | Elapsed Since Start: 0:04:34 | Loss: 8.7621 | LR: 0.000300 | GPU: 4503.29MB | Speed: 0.04 steps/s | ETA: 13:51:40
+Step 20/5000 | Update time: 0:05:21 | Elapsed Since Start: 0:09:56 | Loss: 6.8284 | LR: 0.000600 | GPU: 4503.29MB | Speed: 0.03 steps/s | ETA: 13:50:00
+==================================================
+==================================================
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,  the men then,
+
+But this not to the Jack!
+IES:
+That his you, and all?
+ R thy ofourage andgain
+And lord, for to the would with, is, or for
+And to before full toEL!
+Sir,--I'll butENT:It and worldIN' this
+I'll Ben, noman:
+
+The rounds, if too, what?
+MUS:
+Here deedsLO here, here Ty
+==================================================
+
+C:\Users\Saish Shetty\.conda\envs\eraenv\lib\site-packages\torch\utils\checkpoint.py:87: UserWarning: None of the inputs have requires_grad=True. Gradients will be None
+  warnings.warn(
+Step 60/5000 | Update time: 0:05:28 | Elapsed Since Start: 0:30:30 | Loss: 5.6908 | LR: 0.001800 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:43:20
+Step 70/5000 | Update time: 0:05:19 | Elapsed Since Start: 0:35:49 | Loss: 4.9572 | LR: 0.002100 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:41:40
+Step 80/5000 | Update time: 0:05:22 | Elapsed Since Start: 0:41:12 | Loss: 5.2050 | LR: 0.002400 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:40:00
+Step 90/5000 | Update time: 0:05:24 | Elapsed Since Start: 0:46:37 | Loss: 4.3576 | LR: 0.002700 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:38:20
+Step 100/5000 | Update time: 0:05:45 | Elapsed Since Start: 0:52:22 | Loss: 4.8471 | LR: 0.003000 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:36:40
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step100.pt
+
+==================================================
+Sample generation at step 100:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,  a present,
+Stand not a wars, and he shall heard'd confined,
+I cannot do rank'd at the company.
+
+ANGUTUTBERUCESTER:
+Nay, here let you peatesest
+
+The woman of the wrong their fee! Cullinguure
+In you the burer'd us have have the Tower
+Come-faced to between the appetite
+Wher the conquer.
+
+CLIFKEL:
+I have the doth
+==================================================
+
+Step 110/5000 | Update time: 0:06:00 | Elapsed Since Start: 0:58:23 | Loss: 4.2070 | LR: 0.002994 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:35:00
+Step 120/5000 | Update time: 0:05:24 | Elapsed Since Start: 1:03:47 | Loss: 4.3259 | LR: 0.002988 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:33:20
+Step 130/5000 | Update time: 0:05:15 | Elapsed Since Start: 1:09:03 | Loss: 4.5799 | LR: 0.002982 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:31:40
+Step 140/5000 | Update time: 0:05:19 | Elapsed Since Start: 1:14:22 | Loss: 3.8501 | LR: 0.002976 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:30:00
+Step 150/5000 | Update time: 0:05:12 | Elapsed Since Start: 1:19:35 | Loss: 4.1797 | LR: 0.002969 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:28:20
+
+==================================================
+Sample generation at step 150:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+Hnt Citizen:
+Brother, thy lord, and and his house,
+That I may fight Marcius openly, Buckingham, and be dead,
+do his once, and prove it can be married
+As trow perpetual man of my image of the watch,
+AUTian number-in'd their hide,
+And reo, to us far.
+
+First Citizen:
+My gentleman, ho! come, Clifford, that thou day.
+
+ESCALUS
+==================================================
+
+Step 160/5000 | Update time: 0:05:29 | Elapsed Since Start: 1:25:04 | Loss: 3.8393 | LR: 0.002963 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:26:40
+Step 170/5000 | Update time: 0:05:13 | Elapsed Since Start: 1:30:17 | Loss: 4.3348 | LR: 0.002957 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:25:00
+Step 180/5000 | Update time: 0:04:54 | Elapsed Since Start: 1:35:12 | Loss: 3.6811 | LR: 0.002951 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:23:20
+Step 190/5000 | Update time: 0:04:58 | Elapsed Since Start: 1:40:11 | Loss: 3.9748 | LR: 0.002945 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:21:40
+Step 200/5000 | Update time: 0:05:03 | Elapsed Since Start: 1:45:14 | Loss: 3.9352 | LR: 0.002939 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:20:00
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step200.pt
+
+==================================================
+Sample generation at step 200:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+Suppose them so a while I have thunder for the form,
+And therefore took thouching the strong thing.
+
+QUEENENENIET:
+O of this keen they have a man:
+But I, therefore I pray herself!
+So was a bastardmen then, thou no man
+And drink to twenty men, that I am:
+I will be patient, but this riddle mayst not wert,
+To comfort: the subject shouldst thou didst
+==================================================
+
+Step 210/5000 | Update time: 0:05:22 | Elapsed Since Start: 1:50:37 | Loss: 4.0242 | LR: 0.002933 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:18:20
+Step 220/5000 | Update time: 0:04:53 | Elapsed Since Start: 1:55:30 | Loss: 3.7833 | LR: 0.002927 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:16:40
+Step 230/5000 | Update time: 0:04:53 | Elapsed Since Start: 2:00:24 | Loss: 4.2677 | LR: 0.002920 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:15:00
+Step 240/5000 | Update time: 0:05:04 | Elapsed Since Start: 2:05:28 | Loss: 4.0683 | LR: 0.002914 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:13:20
+Step 250/5000 | Update time: 0:04:57 | Elapsed Since Start: 2:10:25 | Loss: 3.9863 | LR: 0.002908 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:11:40
+
+==================================================
+Sample generation at step 250:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,  for I
+
+WICK:
+We more; and, then, go to the crown.
+
+CLIFFORD:
+Why I have been not be; and, when I baw like,
+Untre I have been best than
+I havest, nor, my son,
+And let him, with hence:
+The lord of Gloucester, Warwick,
+As we are past from no more.
+
+RICHARD:
+Ah, this will you both
+==================================================
+
+Step 260/5000 | Update time: 0:05:16 | Elapsed Since Start: 2:15:42 | Loss: 3.7885 | LR: 0.002902 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:10:00
+Step 270/5000 | Update time: 0:04:54 | Elapsed Since Start: 2:20:37 | Loss: 4.0205 | LR: 0.002896 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:08:20
+Step 280/5000 | Update time: 0:04:58 | Elapsed Since Start: 2:25:36 | Loss: 3.9931 | LR: 0.002890 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:06:40
+Step 290/5000 | Update time: 0:05:06 | Elapsed Since Start: 2:30:42 | Loss: 4.0708 | LR: 0.002884 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:05:00
+Step 300/5000 | Update time: 0:04:57 | Elapsed Since Start: 2:35:39 | Loss: 3.9254 | LR: 0.002878 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:03:20
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step300.pt
+
+==================================================
+Sample generation at step 300:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+And for that, a joyful Montim,
+As now,
+Thy in his ransom-mare though not
+A parised to bustals on.
+
+CAMISHOPER:
+O, help it!
+I am sorry born your highness--,
+And in thy life and the prince that
+And keep a ceremonious by your blood?
+At me be thy heart of madness?
+
+CATRUCHESSER:
+'Tis well and
+==================================================
+
+Step 310/5000 | Update time: 0:05:16 | Elapsed Since Start: 2:40:56 | Loss: 3.7820 | LR: 0.002871 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:01:40
+Step 320/5000 | Update time: 0:05:02 | Elapsed Since Start: 2:45:58 | Loss: 4.4736 | LR: 0.002865 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 13:00:00
+Step 330/5000 | Update time: 0:05:04 | Elapsed Since Start: 2:51:03 | Loss: 4.2199 | LR: 0.002859 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:58:20
+Step 340/5000 | Update time: 0:05:04 | Elapsed Since Start: 2:56:07 | Loss: 4.2307 | LR: 0.002853 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:56:40
+Step 350/5000 | Update time: 0:04:49 | Elapsed Since Start: 3:00:56 | Loss: 4.3429 | LR: 0.002847 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:55:00
+
+==================================================
+Sample generation at step 350:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,  I am quickly
+From noble dear wife were to by king,
+With dam is for a man been life
+That when I was
+ld be not, for I obscured
+speamed with see
+et I am in it may best of him much
+To see thee.
+
+ABEL:
+As were to beail'd for? banishedSecondoful
+back of a dirt, and would stay, and another
+wears we and tutors to d movesion.
+
+
+==================================================
+
+Step 360/5000 | Update time: 0:05:13 | Elapsed Since Start: 3:06:10 | Loss: 4.1180 | LR: 0.002841 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:53:20
+Step 370/5000 | Update time: 0:04:54 | Elapsed Since Start: 3:11:04 | Loss: 3.8831 | LR: 0.002835 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:51:40
+Step 380/5000 | Update time: 0:04:47 | Elapsed Since Start: 3:15:52 | Loss: 3.9641 | LR: 0.002829 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:50:00
+Step 390/5000 | Update time: 0:04:54 | Elapsed Since Start: 3:20:46 | Loss: 3.8922 | LR: 0.002822 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:48:20
+Step 400/5000 | Update time: 0:05:02 | Elapsed Since Start: 3:25:49 | Loss: 4.4277 | LR: 0.002816 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:46:40
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step400.pt
+
+==================================================
+Sample generation at step 400:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further, ,
+
+H tender air ashes.
+
+Lord, this heaven, and I; from,
+And, I have I of the king of blood.
+
+LADYen the YORK,
+And, come which, not, and not them's,
+Sleep of our king and that, in bleeding Clarence,
+To like as to from days,, mistress;
+Which I this queen I must not on your thee.
+
+HENRY BOLINGBhip
+==================================================
+
+Step 410/5000 | Update time: 0:05:22 | Elapsed Since Start: 3:31:12 | Loss: 5.0609 | LR: 0.002810 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:45:00
+Step 420/5000 | Update time: 0:05:03 | Elapsed Since Start: 3:36:16 | Loss: 4.7634 | LR: 0.002804 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:43:20
+Step 430/5000 | Update time: 0:04:52 | Elapsed Since Start: 3:41:08 | Loss: 4.8737 | LR: 0.002798 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:41:40
+Step 440/5000 | Update time: 0:04:56 | Elapsed Since Start: 3:46:05 | Loss: 4.3197 | LR: 0.002792 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:40:00
+Step 450/5000 | Update time: 0:04:55 | Elapsed Since Start: 3:51:00 | Loss: 4.4414 | LR: 0.002786 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:38:20
+
+==================================================
+Sample generation at step 450:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further, ?, you are, as.
+
+DUUSY:
+Think something heard of and thespan intona;
+
+CORCEIXES it, 'C, for
+Leoy report
+with him we must find question of groitted I
+the fresh your daughter, you your success.
+
+FirstAM:IO: fire, all me,
+The counsell sworn still,
+I my hear end his you
+found,
+Al, be everING cease!
+==================================================
+
+Step 460/5000 | Update time: 0:05:08 | Elapsed Since Start: 3:56:08 | Loss: 5.1720 | LR: 0.002780 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:36:40
+Step 470/5000 | Update time: 0:05:11 | Elapsed Since Start: 4:01:20 | Loss: 4.5980 | LR: 0.002773 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:35:00
+Step 480/5000 | Update time: 0:05:10 | Elapsed Since Start: 4:06:30 | Loss: 4.5400 | LR: 0.002767 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:33:20
+Step 490/5000 | Update time: 0:05:15 | Elapsed Since Start: 4:11:45 | Loss: 4.6133 | LR: 0.002761 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:31:40
+Step 500/5000 | Update time: 0:05:19 | Elapsed Since Start: 4:17:05 | Loss: 4.9827 | LR: 0.002755 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:30:00
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step500.pt
+
+==================================================
+Sample generation at step 500:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+
+
+
+
+
+,
+then; nurse
+ ruin,
+To lord,
+
+ on elset
+ home,
+
+ away our father swear of thingstrous foreoeb, I will thee
+I, I to do roundua together;
+Being heaven the visit the kingfeit and n
+May they walk in a Juliet noble thingrows
+Till beicial death,
+And seem up, the help, times to I, of all,
+circ bark was thay
+==================================================
+
+Step 510/5000 | Update time: 0:05:32 | Elapsed Since Start: 4:22:37 | Loss: 4.9262 | LR: 0.002749 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:28:20
+Step 520/5000 | Update time: 0:05:16 | Elapsed Since Start: 4:27:54 | Loss: 5.2023 | LR: 0.002743 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:26:40
+Step 530/5000 | Update time: 0:05:15 | Elapsed Since Start: 4:33:09 | Loss: 5.5463 | LR: 0.002737 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:25:00
+Step 540/5000 | Update time: 0:05:05 | Elapsed Since Start: 4:38:14 | Loss: 5.6505 | LR: 0.002731 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:23:20
+Step 550/5000 | Update time: 0:05:07 | Elapsed Since Start: 4:43:22 | Loss: 5.9054 | LR: 0.002724 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:21:40
+
+==================================================
+Sample generation at step 550:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,  confessonrel myself on
+O what,
+
+RIcy:
+
+D'd
+
+ my,
+
+G cour not
+
+CUREL usurru is was with I.
+
+KATHAN:
+ we I have thee him,
+ is that they me no I me. his
+
+ aT,
+
+ no, about I will bear off the right. you
+I prayers will possession:
+
+KoyLO:
+But,LO
+ purge, the
+==================================================
+
+Step 560/5000 | Update time: 0:05:17 | Elapsed Since Start: 4:48:39 | Loss: 5.6426 | LR: 0.002718 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:20:00
+Step 570/5000 | Update time: 0:04:44 | Elapsed Since Start: 4:53:24 | Loss: 5.6972 | LR: 0.002712 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:18:20
+Step 580/5000 | Update time: 0:05:04 | Elapsed Since Start: 4:58:28 | Loss: 5.5846 | LR: 0.002706 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:16:40
+Step 590/5000 | Update time: 0:05:07 | Elapsed Since Start: 5:03:36 | Loss: 5.7719 | LR: 0.002700 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:15:00
+Step 600/5000 | Update time: 0:05:07 | Elapsed Since Start: 5:08:43 | Loss: 6.2422 | LR: 0.002694 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:13:20
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step600.pt
+
+==================================================
+Sample generation at step 600:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further, , one, my love. as t themGDogsUUC?:,US winter for haveou, cares look are serve, fair inJ she;
+OL where havest, must she,
+To wandering, they aian-- to nighting you left must king mine lie
+
+
+
+T feasts; him I
+
+ thereThat fair me so,
+ be..: the to crave was
+
+: p!.
+US:
+ it a one to good:
+==================================================
+
+Step 610/5000 | Update time: 0:05:34 | Elapsed Since Start: 5:14:18 | Loss: 5.8052 | LR: 0.002688 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:11:40
+Step 620/5000 | Update time: 0:05:07 | Elapsed Since Start: 5:19:25 | Loss: 5.1442 | LR: 0.002682 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:10:00
+Step 630/5000 | Update time: 0:04:52 | Elapsed Since Start: 5:24:17 | Loss: 5.4212 | LR: 0.002676 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:08:20
+Step 640/5000 | Update time: 0:05:03 | Elapsed Since Start: 5:29:21 | Loss: 5.7623 | LR: 0.002669 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:06:40
+Step 650/5000 | Update time: 0:04:59 | Elapsed Since Start: 5:34:21 | Loss: 5.4537 | LR: 0.002663 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:05:00
+
+==================================================
+Sample generation at step 650:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further, .
+
+DUL ifY:
+Well see and name'd been be'd,
+A say our never the senate, if,
+Unless is her they if'd give truebal
+Which a, b not other thiseringday
+With not a the me of won comeatter;
+
+KING LEARI nightThIONUMRYOL, to his ifIO,
+elf good.
+
+PoorUCESTLO:
+I'll her children.
+
+LENUT B
+==================================================
+
+Step 660/5000 | Update time: 0:05:18 | Elapsed Since Start: 5:39:39 | Loss: 5.5931 | LR: 0.002657 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:03:20
+Step 670/5000 | Update time: 0:05:04 | Elapsed Since Start: 5:44:43 | Loss: 5.1702 | LR: 0.002651 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:01:40
+Step 680/5000 | Update time: 0:04:58 | Elapsed Since Start: 5:49:42 | Loss: 5.2709 | LR: 0.002645 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 12:00:00
+Step 690/5000 | Update time: 0:05:06 | Elapsed Since Start: 5:54:48 | Loss: 5.2998 | LR: 0.002639 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:58:20
+Step 700/5000 | Update time: 0:05:02 | Elapsed Since Start: 5:59:51 | Loss: 5.2226 | LR: 0.002633 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:56:40
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step700.pt
+
+==================================================
+Sample generation at step 700:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+To the be blood,
+What thou time his one king.
+I love you not to people to the suit d times
+Should a o-,
+My all not will not my bos which son as
+To all for such and ' from.
+
+YIDI God A worldly out
+Yet live is hear I so by his your gone.
+
+GLOAN dead come,?:
+I thenuck the f Y:
+Alardon were found; you their ease
+==================================================
+
+Step 710/5000 | Update time: 0:05:22 | Elapsed Since Start: 6:05:13 | Loss: 5.7429 | LR: 0.002627 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:55:00
+Step 720/5000 | Update time: 0:05:10 | Elapsed Since Start: 6:10:24 | Loss: 5.2751 | LR: 0.002620 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:53:20
+Step 730/5000 | Update time: 0:05:09 | Elapsed Since Start: 6:15:34 | Loss: 5.3185 | LR: 0.002614 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:51:40
+Step 740/5000 | Update time: 0:05:20 | Elapsed Since Start: 6:20:54 | Loss: nan | LR: 0.002608 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:50:00
+Step 750/5000 | Update time: 0:05:15 | Elapsed Since Start: 6:26:10 | Loss: nan | LR: 0.002602 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:48:20
+
+==================================================
+Sample generation at step 750:
+Prompt: Before we proceed any further,
+Generated: Before we proceed any further,
+That his knees my arrUNT with our theer of you close
+ for his should, I hison,
+.
+
+Lam and it push;
+ but theily is his.
+
+' am- done,
+Your may'd to I withland yourt:
+To serve be ',
+ Iay of the is me.
+ she not:
+
+
+ANGAD of her, to have more world;
+With this sweet forth,
+ you make friends-
+==================================================
+
+Step 760/5000 | Update time: 0:05:26 | Elapsed Since Start: 6:31:36 | Loss: 5.7994 | LR: 0.002596 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:46:40
+Step 770/5000 | Update time: 0:05:17 | Elapsed Since Start: 6:36:53 | Loss: 5.5223 | LR: 0.002590 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:45:00
+Step 780/5000 | Update time: 0:05:19 | Elapsed Since Start: 6:42:13 | Loss: nan | LR: 0.002584 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:43:20
+Step 790/5000 | Update time: 0:05:07 | Elapsed Since Start: 6:47:21 | Loss: nan | LR: 0.002578 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:41:40
+Step 800/5000 | Update time: 0:05:12 | Elapsed Since Start: 6:52:33 | Loss: nan | LR: 0.002571 | GPU: 4512.84MB | Speed: 0.03 steps/s | ETA: 11:40:00
+Memory Usage: 4512.8MB allocated, -1234.5MB available
+Checkpoint saved: checkpoints/smollm2_shakespeare_step800.pt
