@@ -54,14 +54,14 @@ Total Parameters: 373.03M
 Total number of steps trained: 2800 + 8800 = **11600**
 
 ## Training Challenges
-1. ### NaN Error loss
+1. ### NaN loss error
     - Had to stop further training because of the NaN loss Error.
         ![AWS NaN Error](training_logs_ec2/NaN%20error.png)
     - Fixes tried:
         - Reducing **Learning Rate** and **Gradient Clipping Max Norm**
         - Did in-depth debugging of the DeepSeek model layers to check for **exploding gradients**
         - Shifted training from a single-GPU system to a **multi-GPU system** to ensure higher precision calculations
-    - Possible reasons:
+    - Possible Reasons for the Issue:
         - Using Shakespeare dataset (with 100k lines) might not be enough for a model of this size (373m paremeters)
             - Trying re-training with a larger text dataset such as Cosmopedia V2
 
