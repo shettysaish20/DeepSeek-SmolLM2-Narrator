@@ -45,11 +45,13 @@ Total Parameters: 373.03M
         - GPU: NVIDIA RTX 4060 
         - Gradient Accumulation steps: 4
         - Total number of Steps: 700 * 4 = 2800
+        - Average time taken: 5 min / 10 steps
 2. ### AWS EC2 Training
     - From Global Step 700 to Global Step 1800 (resumed checkpoint)
         - Instance type: g4dn.12xlarge
         - Gradient Accumulation steps: 8
         - Total number of Steps: 1100 * 8 = 8800
+        - Average time taken: 1 min/ 10 steps (**80%** reduction compared to Local Training Speed)
 
 Total number of steps trained: 2800 + 8800 = **11600**
 
