@@ -19,6 +19,32 @@ from pathlib import Path
 from model_deepseek import LlamaModel
 from transformers import AutoTokenizer
 import datetime
+import logging
+import signal
+import sys
+
+# Set up logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Add this after the imports - Handling cleanup
+def cleanup_stale_processes():
+    try:
+        if dist.is_initialized():
+            dist.destroy_process_group()
+    except:
+        pass
+
+    # Clear any processes using the port - be careful with this in multi-user environments
+    # os.system('fuser -k 12355/tcp')  # Use with caution!
+
+def signal_handler(sig, frame):
+    print("Cleaning up...")
+    cleanup_stale_processes()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 
 # Add this function before the train() function
@@ -165,12 +191,12 @@ def calculate_model_params(model):
     print(f"Model Parameter Breakdown:")
     print(f"{'='*50}")
     print(f"Total Parameters: {total_params/1e6:.2f}M")
-    print(f"  - Attention Params: {attn_params/1e6:.2f}M ({attn_params/total_params*100:.1f}%)")
-    print(f"  - MLP Params: {mlp_params/1e6:.2f}M ({mlp_params/total_params*100:.1f}%)")
-    print(f"  - MoE Params: {moe_params/1e6:.2f}M ({moe_params/total_params*100:.1f}%)")
-    print(f"  - Embedding Params: {embedding_params/1e6:.2f}M ({embedding_params/total_params*100:.1f}%)")
-    print(f"  - Normalization Params: {norm_params/1e6:.2f}M ({norm_params/total_params*100:.1f}%)")
-    print(f"  - Other Params: {other_params/1e6:.2f}M ({other_params/total_params*100:.1f}%)")
+    print(f" - Attention Params: {attn_params/1e6:.2f}M ({attn_params/total_params*100:.1f}%)")
+    print(f" - MLP Params: {mlp_params/1e6:.2f}M ({mlp_params/total_params*100:.1f}%)")
+    print(f" - MoE Params: {moe_params/1e6:.2f}M ({moe_params/total_params*100:.1f}%)")
+    print(f" - Embedding Params: {embedding_params/1e6:.2f}M ({embedding_params/total_params*100:.1f}%)")
+    print(f" - Normalization Params: {norm_params/1e6:.2f}M ({norm_params/total_params*100:.1f}%)")
+    print(f" - Other Params: {other_params/1e6:.2f}M ({other_params/total_params*100:.1f}%)")
     print(f"{'='*50}\n")
 
     return total_params/1e6  # Return total in millions
@@ -233,13 +259,13 @@ def track_expert_utilization(model, writer, global_step, rank):
                 routing_probs = torch.sigmoid(routing_logits)
                 _, indices = torch.topk(routing_probs, moe.top_k, dim=-1)
 
-                # Count expert selections
-                for k in range(moe.top_k):
-                    expert_indices = indices[..., k].flatten()
-                    for i in range(moe.num_routed_experts):
-                        expert_counts[i] += (expert_indices == i).sum()
+            # Count expert selections
+            for k in range(moe.top_k):
+                expert_indices = indices[..., k].flatten()
+                for i in range(moe.num_routed_experts):
+                    expert_counts[i] += (expert_indices == i).sum()
 
-                total_tokens += MICRO_BATCH_SIZE * 32
+        total_tokens += MICRO_BATCH_SIZE * 32
 
     if total_tokens > 0:
         # Normalize and log
@@ -286,15 +312,39 @@ def log_memory_usage(writer, global_step, rank):
         }
     return {}
 
+class MetricLogger:
+    def __init__(self, log_dir, rank):
+        self.log_dir = log_dir
+        self.rank = rank
+        if rank == 0:
+            os.makedirs(log_dir, exist_ok=True)
+        self.metrics = []
 
-def train(rank, world_size, resume_from = None):
+    def log_metrics(self, epoch_metrics):
+        if self.rank == 0:  # Only log metrics on main process
+            self.metrics.append(epoch_metrics)
+            with open(os.path.join(self.log_dir, 'training_log.json'), 'w') as f:
+                json.dump(self.metrics, f, indent=4)
+
+def setup(rank, world_size):
+    """Initialize distributed process group."""
+    os.environ['MASTER_ADDR'] = os.environ.get('MASTER_ADDR', 'localhost')
+    os.environ['MASTER_PORT'] = os.environ.get('MASTER_PORT', '12355')
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+
+def cleanup():
+    """Destroy distributed process group."""
+    dist.destroy_process_group()
+
+def train(rank, world_size, resume_from=None):
+    print(f"--- Process rank: {rank}, world size: {world_size} ---")
     torch.backends.cudnn.benchmark = True
     # Set device
     device = torch.device(f"cuda:{rank}")
     print(f"Rank {rank}/{world_size} using device: {device}")
 
     # Initialize distributed process group
-    dist.init_process_group(backend='nccl', init_method='env://', world_size=world_size, rank=rank)
+    setup(rank, world_size)
 
     # Enable TF32 precision (faster on Ampere+ GPUs)
     torch.backends.cuda.matmul.allow_tf32 = True
@@ -315,22 +365,22 @@ def train(rank, world_size, resume_from = None):
     # Initialize model with memory optimizations
     model = LlamaModel(config['model'], deepseek_config)
 
-    model_params_m = calculate_model_params(model)
     apply_memory_optimizations(model)
 
     # Move model to device
-    model = model.to(device)
+    model = model.to(device)  # Use device instead of rank directly
     # Wrap the model with DDP
-    model = DDP(model, device_ids=[rank])
+    model = DDP(model, device_ids=[rank])  # Include device_ids
 
     # Print model size (only on rank 0)
     if rank == 0:
+        model_params_m = calculate_model_params(model.module)  # Access .module for the original model
         param_count = sum(p.numel() for p in model.module.parameters())
         print(f"Model parameters: {param_count/1e6:.2f}M")
 
     # Set up optimizer
     optimizer = AdamW(
-        model.module.parameters(),
+        model.module.parameters(),  # Access parameters through .module
         lr=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY,
         betas=(config['optimizer']['optimizer_factory']['adam_beta1'],
@@ -380,7 +430,7 @@ def train(rank, world_size, resume_from = None):
     # Load checkpoint if resuming
     if resume_from is not None and os.path.exists(resume_from):
         checkpoint = torch.load(resume_from, map_location=device)
-        model.module.load_state_dict(checkpoint['model_state_dict'])
+        model.module.load_state_dict(checkpoint['model_state_dict'])  # Load into .module
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         scaler.load_state_dict(checkpoint['scaler'])
@@ -388,17 +438,20 @@ def train(rank, world_size, resume_from = None):
         epoch = checkpoint['epoch']
         print(f"Rank {rank}: Resumed from step {global_step}")
         if rank == 0:
-            start_time = time.time() - (global_step * (time.time() - start_time) / max(1, global_step)) # Adjust start time
+            start_time = time.time() - (global_step * (time.time() - start_time) / max(1, global_step))  # Adjust start time
+
+    # Initialize MetricLogger
+    metric_logger = MetricLogger("training_metrics", rank)
 
     # Main training loop
-    print(f"Rank {rank}: Starting training...")
+    # print(f"Rank {rank}: Starting training...")
     prev_total = time.time()
     while global_step < TOTAL_STEPS:
         epoch_start_time = time.time()
         epoch += 1
         if rank == 0:
             print(f"Epoch {epoch}")
-        sampler.set_epoch(epoch) # Important for DistributedSampler
+        sampler.set_epoch(epoch)  # Important for DistributedSampler
 
         total_loss = 0.0
         samples_seen = 0
@@ -434,82 +487,86 @@ def train(rank, world_size, resume_from = None):
                 # Backward pass with mixed precision
                 scaler.scale(loss).backward()
 
-                # Step optimizer every GRAD_ACCUMULATION_STEPS batches
-                if (batch_idx + 1) % GRAD_ACCUMULATION_STEPS == 0:
-                    # Gradient clipping
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), config['optimizer']['clip_grad'])
+            # Step optimizer every GRAD_ACCUMULATION_STEPS batches
+            if (batch_idx + 1) % GRAD_ACCUMULATION_STEPS == 0:
+                # Gradient clipping
+                torch.nn.utils.clip_grad_norm_(model.parameters(), config['optimizer']['clip_grad'])
 
-                    # Optimizer step
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-                    scheduler.step()
+                # Optimizer step
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+                scheduler.step()
 
-                    # Increment global step
-                    global_step += 1
-                    # Print stats (only on rank 0)
-                    if rank == 0 and global_step % 10 == 0:
-                        current_lr = scheduler.get_last_lr()[0]
-                        gpu_memory = torch.cuda.memory_allocated(rank) / 1024**2
+                # Increment global step
+                global_step += 1
+                # Print stats (only on rank 0)
+                if rank == 0 and global_step % 10 == 0:
+                    current_lr = scheduler.get_last_lr()[0]
+                    gpu_memory = torch.cuda.memory_allocated(rank) / 1024**2
 
-                        # Calculate timing information
-                        elapsed = time.time() - prev_total
-                        prev_total += elapsed
-                        total_elapsed = time.time() - start_time
+                    # Calculate timing information
+                    elapsed = time.time() - prev_total
+                    prev_total += elapsed
+                    total_elapsed = time.time() - start_time
 
-                        steps_per_second = global_step / max(1, total_elapsed)
-                        eta_seconds = (TOTAL_STEPS - global_step) / max(0.1, steps_per_second)
+                    steps_per_second = global_step / max(1, total_elapsed)
+                    eta_seconds = (TOTAL_STEPS - global_step) / max(0.1, steps_per_second)
 
-                        print(f"Step {global_step}/{TOTAL_STEPS} | Update time: {format_time(elapsed)} | Elapsed Since Start: {format_time(total_elapsed)} | Loss: {loss.item()*GRAD_ACCUMULATION_STEPS:.4f} | "
-                              f"LR: {current_lr:.6f} | GPU: {gpu_memory:.2f}MB | "
-                              f"Speed: {steps_per_second:.2f} steps/s | ETA: {format_time(eta_seconds)}")
+                    print(f"Step {global_step}/{TOTAL_STEPS} | Update time: {format_time(elapsed)} | Elapsed Since Start: {format_time(total_elapsed)} | Loss: {loss.item()*GRAD_ACCUMULATION_STEPS:.4f} | "
+                          f"LR: {current_lr:.6f} | GPU: {gpu_memory:.2f}MB | "
+                          f"Speed: {steps_per_second:.2f} steps/s | ETA: {format_time(eta_seconds)}")
 
-                        # Log to tensorboard
+                    # Log to tensorboard
+                    if writer is not None:
                         writer.add_scalar('train/loss', loss.item()*GRAD_ACCUMULATION_STEPS, global_step)
                         writer.add_scalar('train/lr', current_lr, global_step)
                         writer.add_scalar('system/gpu_memory_mb', gpu_memory, global_step)
 
-                        # Add periodic MoE tracking
-                        if global_step % 100 == 0:
-                            track_expert_utilization(model.module, writer, global_step, rank)
-                            mem_stats = log_memory_usage(writer, global_step, rank)
-                            if mem_stats:
-                                print(f"Rank {rank}: Memory Usage: {mem_stats['allocated']:.1f}MB allocated, "
-                                      f"{mem_stats['available']:.1f}MB available")
+                    # Add periodic MoE tracking
+                    if global_step % 100 == 0:
+                        track_expert_utilization(model.module, writer, global_step, rank)
+                        mem_stats = log_memory_usage(writer, global_step, rank)
+                        if mem_stats:
+                            print(f"Rank {rank}: Memory Usage: {mem_stats['allocated']:.1f}MB allocated, "
+                                  f"{mem_stats['available']:.1f}MB available")
 
-                        # Save checkpoint
-                        if global_step % 100 == 0:
-                            checkpoint_path = f"checkpoints/smollm2_shakespeare_step{global_step}.pt"
-                            torch.save({
-                                'global_step': global_step,
-                                'epoch': epoch,
-                                'model_state_dict': model.module.state_dict(),
-                                'optimizer_state_dict': optimizer.state_dict(),
-                                'scheduler_state_dict': scheduler.state_dict(),
-                                'scaler': scaler.state_dict(),
-                                'loss': loss.item(),
-                            }, checkpoint_path)
-                            print(f"Rank 0: Checkpoint saved: {checkpoint_path}")
+                # Save checkpoint
+                if global_step % 100 == 0:
+                    checkpoint_path = f"checkpoints/smollm2_shakespeare_step{global_step}.pt"
+                    torch.save({
+                        'global_step': global_step,
+                        'epoch': epoch,
+                        'model_state_dict': model.module.state_dict(),  # Save .module state
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'scheduler_state_dict': scheduler.state_dict(),
+                        'scaler': scaler.state_dict(),
+                        'loss': loss.item(),
+                    }, checkpoint_path)
+                    if rank == 0:
+                        print(f"Rank 0: Checkpoint saved: {checkpoint_path}")
 
-                        if global_step % 50 == 0:
-                            # Generate sample text
-                            test_prompt = "Before we proceed any further, "
-                            generated_text = generate_text(model.module, tokenizer, test_prompt, device=device)
+                if global_step % 50 == 0:
+                    # Generate sample text
+                    test_prompt = "Before we proceed any further, "
+                    generated_text = generate_text(model.module, tokenizer, test_prompt, device=device)
 
-                            print("\n" + "="*50)
-                            print(f"Rank 0: Sample generation at step {global_step}:")
-                            print(f"Prompt: {test_prompt}")
-                            print(f"Generated: {generated_text}")
-                            print("="*50 + "\n")
+                    print("\n" + "="*50)
+                    if rank == 0:
+                        print(f"Rank 0: Sample generation at step {global_step}:")
+                        print(f"Prompt: {test_prompt}")
+                        print(f"Generated: {generated_text}")
+                        print("="*50 + "\n")
 
-                            # Log to tensorboard
-                            writer.add_text('generation', generated_text, global_step)
+                    # Log to tensorboard
+                    if writer is not None:
+                        writer.add_text('generation', generated_text, global_step)
 
-                    # Check if we've reached total steps
-                    if global_step >= TOTAL_STEPS:
-                        break
+            # Check if we've reached total steps
             if global_step >= TOTAL_STEPS:
                 break
+        if global_step >= TOTAL_STEPS:
+            break
 
         # End of epoch stats (only on rank 0)
         epoch_time = time.time() - epoch_start_time
@@ -522,7 +579,7 @@ def train(rank, world_size, resume_from = None):
             torch.save({
                 'epoch': epoch,
                 'global_step': global_step,
-                'model_state_dict': model.module.state_dict(),
+                'model_state_dict': model.module.state_dict(),  # Save .module state
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler_state_dict': scheduler.state_dict(),
                 'scaler': scaler.state_dict(),
@@ -530,12 +587,26 @@ def train(rank, world_size, resume_from = None):
             }, checkpoint_path)
             print(f"Rank 0: Epoch checkpoint saved: {checkpoint_path}")
 
+        # Gather metrics from all processes
+        world_size = dist.get_world_size()
+        loss_tensor = torch.tensor([avg_loss]).to(device)
+        dist.reduce(loss_tensor, 0, op=dist.ReduceOp.SUM)  # Reduce loss
+
+        if rank == 0:
+            avg_loss = loss_tensor.item() / world_size
+            metrics = {
+                'epoch': epoch,
+                'train_loss': avg_loss,
+                'epoch_time': epoch_time
+            }
+            metric_logger.log_metrics(metrics)
+
         if global_step >= TOTAL_STEPS:
             break
 
     # Save final model (only on rank 0)
     if rank == 0:
-        torch.save(model.module.state_dict(), "checkpoints/smollm2_shakespeare_final.pt")
+        torch.save(model.module.state_dict(), "checkpoints/smollm2_shakespeare_final.pt")  # Save .module state
         print("Training completed!")
 
         # Final stats
@@ -543,20 +614,22 @@ def train(rank, world_size, resume_from = None):
         print(f"Final GPU memory (Rank 0): {final_gpu_memory:.2f} MB")
         print(f"Memory increase during training (Rank 0): {final_gpu_memory - starting_gpu_memory:.2f} MB")
 
-    dist.destroy_process_group()
+    cleanup()  # Ensure proper cleanup
 
-def main(resume_from):
+def main(resume_from=None):
     world_size = torch.cuda.device_count()
     mp.spawn(train,
-             args=(world_size, resume_from,),
+             args=(world_size, resume_from),  # Pass world_size as a tuple
              nprocs=world_size,
              join=True)
 
 if __name__ == "__main__":
-    import argparse
+    print("--- Running the modified train_ddp.py ---")
+    # import argparse
+    import os
 
-    parser = argparse.ArgumentParser(description='Train SmolLM2 on Shakespeare with DDP')
-    parser.add_argument('--resume', type=str, default=None, help='Path to checkpoint to resume from')
-    args = parser.parse_args()
+    # local_rank = int(os.environ['LOCAL_RANK'])
+    # print(f"--- Process local rank: {local_rank} ---")
 
-    main(args.resume)
+    # main(args.resume)
+    main()
