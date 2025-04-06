@@ -63,8 +63,8 @@ NUM_HEADS = config['model']['model_config']['num_attention_heads']
 NUM_LAYERS = config['model']['model_config']['num_hidden_layers']
 SEQ_LEN = config['tokens']['sequence_length']
 VOCAB_SIZE = config['model']['model_config']['vocab_size']
-MICRO_BATCH_SIZE = 4  # Adjusted back to original as we have more GPU memory
-GRAD_ACCUMULATION_STEPS = 4  # Adjusted back to original
+MICRO_BATCH_SIZE = 2  # Adjusted back to original as we have more GPU memory
+GRAD_ACCUMULATION_STEPS = 8  # Adjusted back to original
 LEARNING_RATE = config['optimizer']['learning_rate_scheduler']['learning_rate']
 WEIGHT_DECAY = config['optimizer']['weight_decay']
 WARMUP_STEPS = 1000  # Shorter warmup for quicker training
@@ -370,7 +370,7 @@ def train(rank, world_size, resume_from=None):
     # Move model to device
     model = model.to(device)  # Use device instead of rank directly
     # Wrap the model with DDP
-    model = DDP(model, device_ids=[rank])  # Include device_ids
+    model = DDP(model, device_ids=[rank], find_unused_parameters=True)  # Include device_ids
 
     # Print model size (only on rank 0)
     if rank == 0:
@@ -428,16 +428,22 @@ def train(rank, world_size, resume_from=None):
     steps_per_second = 0
 
     # Load checkpoint if resuming
+    # Load checkpoint if resuming    
     if resume_from is not None and os.path.exists(resume_from):
-        checkpoint = torch.load(resume_from, map_location=device)
-        model.module.load_state_dict(checkpoint['model_state_dict'])  # Load into .module
+        checkpoint = torch.load(resume_from, map_location=device, weights_only=True)
+        
+        model.module.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         scaler.load_state_dict(checkpoint['scaler'])
+        
         global_step = checkpoint['global_step']
-        epoch = checkpoint['epoch']
-        print(f"Rank {rank}: Resumed from step {global_step}")
+        if 'epoch' in checkpoint:
+            epoch = checkpoint['epoch']
+        
         if rank == 0:
+            print(f"Loaded checkpoint from {resume_from}")
+            print(f"Rank {rank}: Resumed from step {global_step}")
             start_time = time.time() - (global_step * (time.time() - start_time) / max(1, global_step))  # Adjust start time
 
     # Initialize MetricLogger
@@ -618,6 +624,9 @@ def train(rank, world_size, resume_from=None):
 
 def main(resume_from=None):
     world_size = torch.cuda.device_count()
+    if resume_from is not None:
+        config['optimizer']['learning_rate_scheduler']['learning_rate']*= 0.5  # Reduce by half
+        print(f"Resuming training: Setting learning rate to {config['optimizer']['learning_rate_scheduler']['learning_rate']}")
     mp.spawn(train,
              args=(world_size, resume_from),  # Pass world_size as a tuple
              nprocs=world_size,
