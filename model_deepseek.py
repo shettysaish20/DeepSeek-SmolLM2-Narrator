@@ -77,20 +77,34 @@ class MultiHeadLatentAttention(nn.Module):
 
         #Compressed KV Projections
         kv_d = self.kv_proj_d(x) # [bs, seq Len, Latent_dim]
+        if torch.isnan(kv_d).any():
+            print("NaN detected in kv_d")
 
         #Compressed Q Projections
         q_d = self.q_proj_d(x) # [bs, seq Len, Latent_dim]
+        if torch.isnan(q_d).any():
+            print("NaN detected in q_d")
 
         #UnCompressed KV & Q Projections
         k_proj_2 = self.k_proj_u(kv_d) # [bs, seq_len, hidden size//2]
+        if torch.isnan(k_proj_2).any():
+            print("NaN detected in k_proj_2")
 
         q_proj_2 = self.q_proj_u(q_d) # [bs, seq_Len, hidden_size//2]
+        if torch.isnan(q_proj_2).any():
+            print("NaN detected in q_proj_2")
         v = self.v_proj_u(kv_d) # [ bs, seq len, hidden size]
+        if torch.isnan(v).any():
+            print("NaN detected in v")
 
         #Generate ROPE Components
         k_rope_2 = self.rope_k(x) # [bs, seq len, hidden_size//2]
+        if torch.isnan(k_rope_2).any():
+            print("NaN detected in k_rope_2")
 
         q_rope_2 = self.rope_q(q_d) # [bs, seq len, hidden_size//2]
+        if torch.isnan(q_rope_2).any():
+            print("NaN detected in q_rope_2")
         #Reshape components for heads before ROPE
 
         k_proj_2=k_proj_2.view(batch_size, seq_len, self.num_heads, self.head_dim//2)
@@ -102,32 +116,51 @@ class MultiHeadLatentAttention(nn.Module):
         #Apply ROPE to positional aware components
         rotary_embeddings = self.rotary_emb.compute_rotary_embeddings(seq_len, x.device)
         k_rope_2 = self.rotary_emb.apply_rotary_emb(k_rope_2, rotary_embeddings)
+        if torch.isnan(k_rope_2).any():
+            print("NaN detected in k_rope_2 after ROPE")
         q_rope_2 = self.rotary_emb.apply_rotary_emb(q_rope_2, rotary_embeddings)
+        if torch.isnan(q_rope_2).any():
+            print("NaN detected in q_rope_2 after ROPE")
 
         # Concatenate KV vectors with KV ROPE vectors
         k = torch.cat([k_proj_2, k_rope_2], dim=-1)# [batch size, seq Len, num heads, head_dim]
+        if torch.isnan(k).any():
+            print("NaN detected in k")
 
         q = torch.cat([q_proj_2, q_rope_2], dim=-1)# [batch size, seq Len, num heads, head_dim]
+        if torch.isnan(q).any():
+            print("NaN detected in q")
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim) # [batch size, seq_Len, num_heads, head dim]
+        if torch.isnan(v).any():
+            print("NaN detected in v after view")
 
         #Reshape
         q = q.transpose(1, 2) # [batch size, num heads, seq Len, head_dim]
+        if torch.isnan(q).any():
+            print("NaN detected in q after transpose")
 
         k = k.transpose(1, 2) # [batch_size, num_heads, seq Len, head_dim]
+        if torch.isnan(k).any():
+            print("NaN detected in k after transpose")
         v = v.transpose(1, 2) # [batch_size, num_heads, seq Len, head_dim]
+        if torch.isnan(v).any():
+            print("NaN detected in v after transpose")
 
         #Scaled dot-product attention
         attn_output = F.scaled_dot_product_attention(
-                                q, k, v,
-                                attn_mask=attention_mask,
-                                dropout_p=0.0,
-                                is_causal=True
+                                                    q, k, v,
+                                                    attn_mask=attention_mask,
+                                                    dropout_p=0.0,
+                                                    is_causal=True
         )# [batch size, num heads, seq Len, head dim]
+        if torch.isnan(attn_output).any():
+            print("NaN detected in attn_output")
         #Reshape and project output
 
         attn_output = attn_output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.hidden_size) # [batch_size, seq_Len, hidden_size]
+        if torch.isnan(attn_output).any():
+            print("NaN detected in attn_output after view")
         return self.o_proj(attn_output) # [batch size, seq len, hidden_size]
-
 
 class DeepSeekExpertLayer(nn.Module):
     def __init__(self, hidden_size, intermediate_size):

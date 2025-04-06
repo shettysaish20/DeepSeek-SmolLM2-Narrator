@@ -63,7 +63,7 @@ optimizer:
   accumulate_grad_in_fp32: true
   clip_grad: 1.0
   learning_rate_scheduler:
-    learning_rate: 0.003
+    learning_rate: 0.0003
     lr_decay_starting_step: 1600000
     lr_decay_steps: 400000
     lr_decay_style: linear
