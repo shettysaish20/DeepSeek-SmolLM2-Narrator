@@ -98,6 +98,6 @@ tokens:
   limit_test_batches: 0
   limit_val_batches: 0
   micro_batch_size: 16 #16
-  sequence_length: 1024 #2048
+  sequence_length: 512 #2048
   train_steps: 2000000
   val_check_interval: 1000

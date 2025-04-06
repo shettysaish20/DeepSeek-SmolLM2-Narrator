@@ -63,12 +63,12 @@ NUM_HEADS = config['model']['model_config']['num_attention_heads']
 NUM_LAYERS = config['model']['model_config']['num_hidden_layers']
 SEQ_LEN = config['tokens']['sequence_length']
 VOCAB_SIZE = config['model']['model_config']['vocab_size']
-MICRO_BATCH_SIZE = 16  # Adjusted back to original as we have more GPU memory
-GRAD_ACCUMULATION_STEPS = 1  # Adjusted back to original
+MICRO_BATCH_SIZE = 4  # Adjusted back to original as we have more GPU memory
+GRAD_ACCUMULATION_STEPS = 4  # Adjusted back to original
 LEARNING_RATE = config['optimizer']['learning_rate_scheduler']['learning_rate']
 WEIGHT_DECAY = config['optimizer']['weight_decay']
-WARMUP_STEPS = config['optimizer']['learning_rate_scheduler']['lr_warmup_steps']
-TOTAL_STEPS = config['tokens']['train_steps']
+WARMUP_STEPS = 1000  # Shorter warmup for quicker training
+TOTAL_STEPS = 5000  # As requested
 
 deepseek_config = {
     "compression_ratio": 4,
@@ -138,8 +138,8 @@ def generate_text(model, tokenizer, prompt, max_length=100, temperature=0.8, dev
             logits, _ = model(curr_input_ids)
 
         # Get the logits for the last token
-        next_token_logits = logits[:, -1, :] / temperature
-
+        next_token_logits = logits[-1, :] / temperature
+        
         # Apply softmax to get probabilities
         probs = torch.nn.functional.softmax(next_token_logits, dim=-1)
 
@@ -625,11 +625,10 @@ def main(resume_from=None):
 
 if __name__ == "__main__":
     print("--- Running the modified train_ddp.py ---")
-    # import argparse
-    import os
-
-    # local_rank = int(os.environ['LOCAL_RANK'])
-    # print(f"--- Process local rank: {local_rank} ---")
-
-    # main(args.resume)
-    main()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Train SmolLM2 on Shakespeare')
+    parser.add_argument('--resume', type=str, default=None, help='Path to checkpoint to resume from')
+    args = parser.parse_args()
+    
+    main(resume_from=args.resume)
